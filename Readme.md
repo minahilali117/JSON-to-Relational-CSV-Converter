@@ -1,5 +1,8 @@
 # JSON to Relational CSV Converter
 
+Contributers:
+Minahil Ali - 22i-0849
+Ayaan Khan - 22i-0832
 This tool converts JSON data into relational CSV tables following specific rules for mapping JSON structures to relational data.
 
 ## Overview
@@ -18,6 +21,9 @@ Required tools:
 - C compiler (GCC recommended)
 - Flex (for lexical analysis)
 - Bison (for parsing)
+```bash
+sudo apt-get install flex bison build-essential
+```
 - Make
 
 To build the project:
