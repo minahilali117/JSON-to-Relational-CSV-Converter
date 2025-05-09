@@ -163,8 +163,27 @@ extern FILE *yyin, *yyout;
 #define EOB_ACT_END_OF_FILE 1
 #define EOB_ACT_LAST_MATCH 2
     
-    #define YY_LESS_LINENO(n)
-    #define YY_LINENO_REWIND_TO(ptr)
+    /* Note: We specifically omit the test for yy_rule_can_match_eol because it requires
+     *       access to the local variable yy_act. Since yyless() is a macro, it would break
+     *       existing scanners that call yyless() from OUTSIDE yylex.
+     *       One obvious solution it to make yy_act a global. I tried that, and saw
+     *       a 5% performance hit in a non-yylineno scanner, because yy_act is
+     *       normally declared as a register variable-- so it is not worth it.
+     */
+    #define  YY_LESS_LINENO(n) \
+            do { \
+                int yyl;\
+                for ( yyl = n; yyl < yyleng; ++yyl )\
+                    if ( yytext[yyl] == '\n' )\
+                        --yylineno;\
+            }while(0)
+    #define YY_LINENO_REWIND_TO(dst) \
+            do {\
+                const char *p;\
+                for ( p = yy_cp-1; p >= (dst); --p)\
+                    if ( *p == '\n' )\
+                        --yylineno;\
+            }while(0)
     
 /* Return all but the first "n" matched characters back to the input stream. */
 #define yyless(n) \
@@ -355,8 +374,8 @@ static void yynoreturn yy_fatal_error ( const char* msg  );
 	(yy_hold_char) = *yy_cp; \
 	*yy_cp = '\0'; \
 	(yy_c_buf_p) = yy_cp;
-#define YY_NUM_RULES 27
-#define YY_END_OF_BUFFER 28
+#define YY_NUM_RULES 15
+#define YY_END_OF_BUFFER 16
 /* This struct is not used in this scanner,
    but its presence is necessary. */
 struct yy_trans_info
@@ -364,14 +383,13 @@ struct yy_trans_info
 	flex_int32_t yy_verify;
 	flex_int32_t yy_nxt;
 	};
-static const flex_int16_t yy_accept[57] =
+static const flex_int16_t yy_accept[42] =
     {   0,
-        0,    0,    0,    0,   28,   26,    1,    2,    2,   13,
-        8,   26,   12,    7,    5,    6,   26,   26,   26,    3,
-        4,   24,   14,   25,    1,   12,    0,    0,    0,    0,
-        0,   24,   15,   17,   16,   18,   19,   20,   21,   22,
-        0,   12,    0,   12,    0,    0,    0,    0,    0,   11,
-        9,    0,   10,    0,   23,    0
+        0,    0,   16,   14,   12,   13,   13,   14,    6,   14,
+        8,    5,    3,    4,   14,   14,   14,    1,    2,   12,
+       13,    0,    7,    0,    8,    0,    0,    0,    0,    0,
+        8,    0,    8,    0,    0,    0,    0,   11,    9,   10,
+        0
     } ;
 
 static const YY_CHAR yy_ec[256] =
@@ -380,16 +398,16 @@ static const YY_CHAR yy_ec[256] =
         1,    1,    4,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    2,    1,    5,    1,    1,    1,    1,    1,    1,
-        1,    1,    6,    7,    8,    9,   10,   11,   11,   11,
-       11,   11,   11,   11,   11,   11,   11,   12,    1,    1,
-        1,    1,    1,    1,   13,   13,   13,   13,   14,   13,
+        1,    1,    6,    7,    8,    9,    1,   10,   10,   10,
+       10,   10,   10,   10,   10,   10,   10,   11,    1,    1,
+        1,    1,    1,    1,    1,    1,    1,    1,   12,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-       15,   16,   17,    1,    1,    1,   18,   19,   13,   13,
+       13,   14,   15,    1,    1,    1,   16,    1,    1,    1,
 
-       20,   21,    1,    1,    1,    1,    1,   22,    1,   23,
-        1,    1,    1,   24,   25,   26,   27,    1,    1,    1,
-        1,    1,   28,    1,   29,    1,    1,    1,    1,    1,
+       17,   18,    1,    1,    1,    1,    1,   19,    1,   20,
+        1,    1,    1,   21,   22,   23,   24,    1,    1,    1,
+        1,    1,   25,    1,   26,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
@@ -406,68 +424,65 @@ static const YY_CHAR yy_ec[256] =
         1,    1,    1,    1,    1
     } ;
 
-static const YY_CHAR yy_meta[30] =
-    {   0,
-        1,    1,    1,    1,    2,    1,    1,    1,    1,    1,
-        3,    1,    3,    3,    1,    2,    1,    3,    3,    3,
-        3,    1,    1,    1,    1,    1,    1,    1,    1
-    } ;
-
-static const flex_int16_t yy_base[63] =
-    {   0,
-        0,    0,   25,   26,   82,   83,   79,   83,   83,   83,
-       83,   69,   23,   83,   83,   83,   61,   51,   53,   83,
-       83,    0,   83,   39,   74,   36,   64,   27,   52,   51,
-       44,    0,   83,   83,   83,   83,   83,   83,   83,   83,
-        0,   37,   53,   50,   34,   32,   33,    0,   32,   83,
-       83,    0,   83,    0,   83,   83,   66,   69,   43,   37,
-       36,   33
-    } ;
-
-static const flex_int16_t yy_def[63] =
-    {   0,
-       56,    1,   57,   57,   56,   56,   56,   56,   56,   56,
-       56,   56,   56,   56,   56,   56,   56,   56,   56,   56,
-       56,   58,   56,   56,   56,   56,   56,   56,   56,   56,
-       56,   58,   56,   56,   56,   56,   56,   56,   56,   56,
-       59,   56,   56,   56,   56,   56,   56,   60,   56,   56,
-       56,   61,   56,   62,   56,    0,   56,   56,   56,   56,
-       56,   56
-    } ;
-
-static const flex_int16_t yy_nxt[113] =
-    {   0,
-        6,    7,    8,    9,   10,    6,   11,   12,    6,    6,
-       13,   14,    6,    6,   15,    6,   16,    6,    6,    6,
-       17,    6,   18,    6,    6,   19,    6,   20,   21,   23,
-       23,   27,   43,   26,   43,   55,   28,   44,   54,   52,
-       24,   24,   28,   33,   27,   48,   26,   42,   34,   28,
-       28,   53,   51,   50,   35,   28,   28,   36,   49,   37,
-       44,   38,   39,   44,   40,   41,   22,   22,   22,   32,
-       47,   32,   46,   45,   42,   25,   31,   30,   29,   26,
-       25,   56,    5,   56,   56,   56,   56,   56,   56,   56,
-       56,   56,   56,   56,   56,   56,   56,   56,   56,   56,
-
-       56,   56,   56,   56,   56,   56,   56,   56,   56,   56,
-       56,   56
-    } ;
-
-static const flex_int16_t yy_chk[113] =
+static const YY_CHAR yy_meta[27] =
     {   0,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    1,    1,    1,    1,    1,    1,    1,    1,    3,
-        4,   13,   28,   13,   28,   62,   13,   28,   61,   60,
-        3,    4,   13,   24,   26,   59,   26,   42,   24,   26,
-       42,   49,   47,   46,   24,   26,   42,   24,   45,   24,
-       44,   24,   24,   43,   24,   24,   57,   57,   57,   58,
-       31,   58,   30,   29,   27,   25,   19,   18,   17,   12,
-        7,    5,   56,   56,   56,   56,   56,   56,   56,   56,
-       56,   56,   56,   56,   56,   56,   56,   56,   56,   56,
-
-       56,   56,   56,   56,   56,   56,   56,   56,   56,   56,
-       56,   56
+        1,    1,    1,    1,    1,    1
     } ;
+
+static const flex_int16_t yy_base[43] =
+    {   0,
+        0,    0,   65,   66,   62,   24,   26,   26,   66,   53,
+       32,   66,   66,   66,   46,   37,   39,   66,   66,   57,
+       29,   29,   66,   55,    0,   47,   29,   37,   36,   30,
+       35,   43,   41,   28,   29,   29,   21,   66,   66,   66,
+       66,   35
+    } ;
+
+static const flex_int16_t yy_def[43] =
+    {   0,
+       41,    1,   41,   41,   41,   41,   41,   42,   41,   41,
+       41,   41,   41,   41,   41,   41,   41,   41,   41,   41,
+       41,   42,   41,   42,   11,   41,   41,   41,   41,   41,
+       41,   41,   41,   41,   41,   41,   41,   41,   41,   41,
+        0,   41
+    } ;
+
+static const flex_int16_t yy_nxt[93] =
+    {   0,
+        4,    5,    6,    7,    8,    4,    9,   10,    4,   11,
+       12,    4,   13,    4,   14,    4,    4,   15,    4,   16,
+        4,    4,   17,    4,   18,   19,   21,   21,   21,   21,
+       23,   21,   21,   23,   32,   22,   32,   40,   33,   24,
+       26,   25,   24,   27,   31,   39,   27,   38,   27,   37,
+       33,   27,   33,   36,   35,   34,   31,   41,   20,   30,
+       29,   28,   25,   20,   41,    3,   41,   41,   41,   41,
+       41,   41,   41,   41,   41,   41,   41,   41,   41,   41,
+       41,   41,   41,   41,   41,   41,   41,   41,   41,   41,
+       41,   41
+
+    } ;
+
+static const flex_int16_t yy_chk[93] =
+    {   0,
+        1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
+        1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
+        1,    1,    1,    1,    1,    1,    6,    6,    7,    7,
+        8,   21,   21,   22,   27,   42,   27,   37,   27,    8,
+       11,   11,   22,   11,   31,   36,   31,   35,   11,   34,
+       33,   31,   32,   30,   29,   28,   26,   24,   20,   17,
+       16,   15,   10,    5,    3,   41,   41,   41,   41,   41,
+       41,   41,   41,   41,   41,   41,   41,   41,   41,   41,
+       41,   41,   41,   41,   41,   41,   41,   41,   41,   41,
+       41,   41
+
+    } ;
+
+/* Table of booleans, true if rule could match eol. */
+static const flex_int32_t yy_rule_can_match_eol[16] =
+    {   0,
+0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0,     };
 
 static yy_state_type yy_last_accepting_state;
 static char *yy_last_accepting_cpos;
@@ -485,58 +500,81 @@ int yy_flex_debug = 0;
 char *yytext;
 #line 1 "scanner.l"
 #line 2 "scanner.l"
-/**
- * scanner.l - JSON lexer for json2relcsv using Flex
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "parser.h"  // Generated by Yacc/Bison
+#include "ast.h"    // Ensure this is included for Value_Node etc. if used by yylval directly (not in this case)
+#include "parser.h" // Include the parser header generated by Bison (defines tokens, YYSTYPE, yylval)
 
-// Tracking line and column numbers for error reporting
+// External variables for line/column tracking, used by yyerror
+// Ensure these are declared 'extern int line_num;' in parser.y if not defined there.
+// Or, define them here and ensure parser.y can access them (e.g. if parser.y includes a header that declares them).
+// For simplicity, assume they are defined here and parser.y's yyerror can see them.
 int line_num = 1;
 int col_num = 1;
-int prev_col = 1;
-char string_buffer[65536];  // Buffer for string literals
-int string_buf_ptr = 0;
 
-// Function to update column position
-void update_col() {
-    col_num += yyleng;
-}
-
-// Function for handling newlines
-void handle_newline() {
+/* Helper to update column number based on yytext. Call for every token. */
+static void update_pos() {
     int i;
-    for (i = 0; i < yyleng; i++) {
+    for (i = 0; yytext[i] != '\0'; i++) {
         if (yytext[i] == '\n') {
             line_num++;
-            prev_col = col_num;
             col_num = 1;
-        } else {
+        } else if (yytext[i] == '\t') {
+            col_num += 4; // Or some other tab stop value
+        }
+        else {
             col_num++;
         }
     }
 }
 
-// Function to add character to string buffer
-void add_to_string(char c) {
-    if (string_buf_ptr >= (int)(sizeof(string_buffer) - 1)) {
-        fprintf(stderr, "Error: String buffer overflow at line %d, column %d\n", line_num, col_num);
+/* * process_string: Removes the surrounding quotes from a string literal token.
+ * IMPORTANT: It also needs to handle escape sequences like \n, \", \\, etc.
+ * The current version only strips quotes. A full implementation is more complex.
+ * For now, focusing on memory safety with quote stripping.
+ */
+char* process_string(const char* text_with_quotes) {
+    size_t len = strlen(text_with_quotes);
+    char* processed_str;
+
+    if (len < 2) { // Should not happen for valid STRING token like ""
+        processed_str = strdup(""); // Return empty string for safety
+        if (!processed_str) {
+            fprintf(stderr, "Lexer Error: Memory allocation failed for empty string.\n");
+            exit(EXIT_FAILURE);
+        }
+        return processed_str;
+    }
+
+    // Allocate memory for the string content (length - 2) plus null terminator (1)
+    // So, len - 2 + 1 = len - 1
+    processed_str = (char*)malloc(len - 1);
+    if (!processed_str) {
+        fprintf(stderr, "Lexer Error: Memory allocation failed in process_string.\n");
         exit(EXIT_FAILURE);
     }
-    string_buffer[string_buf_ptr++] = c;
+
+    // Copy the content, excluding the first and last quote
+    strncpy(processed_str, text_with_quotes + 1, len - 2);
+    processed_str[len - 2] = '\0'; // Null-terminate
+
+    // TODO: Implement unescaping of sequences like \", \\, \n, \t, \uXXXX here.
+    // This would involve iterating through processed_str, interpreting escapes,
+    // and potentially reallocating if the unescaped string is shorter.
+    // For example, "\\n" (2 chars) becomes '\n' (1 char).
+
+    return processed_str;
 }
 
-#line 533 "lex.yy.c"
-#define YY_NO_INPUT 1
-/* Exclusive start condition for string parsing */
-
-#line 537 "lex.yy.c"
+#line 571 "lex.yy.c"
+/* yylineno provides line numbers automatically, but col_num still needs manual tracking if precise.
+   If yylineno is used, 'line_num = yylineno;' can be used in update_pos or per rule.
+   For now, keeping manual line_num for consistency with col_num.
+*/
+#line 576 "lex.yy.c"
 
 #define INITIAL 0
-#define STRING 1
 
 #ifndef YY_NO_UNISTD_H
 /* Special case for "unistd.h", since it is non-ANSI. We include it way
@@ -594,6 +632,8 @@ extern int yywrap ( void );
 #endif
 
 #ifndef YY_NO_UNPUT
+    
+    static void yyunput ( int c, char *buf_ptr  );
     
 #endif
 
@@ -749,10 +789,10 @@ YY_DECL
 		}
 
 	{
-#line 55 "scanner.l"
+#line 79 "scanner.l"
 
 
-#line 756 "lex.yy.c"
+#line 796 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -779,13 +819,13 @@ yy_match:
 			while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 				{
 				yy_current_state = (int) yy_def[yy_current_state];
-				if ( yy_current_state >= 57 )
+				if ( yy_current_state >= 42 )
 					yy_c = yy_meta[yy_c];
 				}
 			yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
 			++yy_cp;
 			}
-		while ( yy_base[yy_current_state] != 83 );
+		while ( yy_base[yy_current_state] != 66 );
 
 yy_find_action:
 		yy_act = yy_accept[yy_current_state];
@@ -797,6 +837,16 @@ yy_find_action:
 			}
 
 		YY_DO_BEFORE_ACTION;
+
+		if ( yy_act != YY_END_OF_BUFFER && yy_rule_can_match_eol[yy_act] )
+			{
+			int yyl;
+			for ( yyl = 0; yyl < yyleng; ++yyl )
+				if ( yytext[yyl] == '\n' )
+					
+    yylineno++;
+;
+			}
 
 do_action:	/* This label is used only to access EOF actions. */
 
@@ -811,207 +861,97 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 57 "scanner.l"
-{ update_col(); } /* Ignore whitespace but update column */
+#line 81 "scanner.l"
+{ update_pos(); return '{'; }
 	YY_BREAK
 case 2:
-/* rule 2 can match eol */
 YY_RULE_SETUP
-#line 58 "scanner.l"
-{ handle_newline(); } /* Count newlines for error tracking */
+#line 82 "scanner.l"
+{ update_pos(); return '}'; }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 60 "scanner.l"
-{ update_col(); return '{'; }
+#line 83 "scanner.l"
+{ update_pos(); return '['; }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 61 "scanner.l"
-{ update_col(); return '}'; }
+#line 84 "scanner.l"
+{ update_pos(); return ']'; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 62 "scanner.l"
-{ update_col(); return '['; }
+#line 85 "scanner.l"
+{ update_pos(); return ':'; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 63 "scanner.l"
-{ update_col(); return ']'; }
+#line 86 "scanner.l"
+{ update_pos(); return ','; }
 	YY_BREAK
 case 7:
+/* rule 7 can match eol */
 YY_RULE_SETUP
-#line 64 "scanner.l"
-{ update_col(); return ':'; }
+#line 88 "scanner.l"
+{ /* Simplified string regex, allows any escaped char. \uXXXX needs more. */
+                    /* Original: \"([^\\\"]|\\[\"\\/bfnrt]|\\u[0-9a-fA-F]{4})*\" */
+    update_pos();
+    yylval.string_val = process_string(yytext); // process_string MUST return heap memory
+    return STRING;
+}
 	YY_BREAK
+/* Number: integer, optional fraction, optional exponent */
 case 8:
 YY_RULE_SETUP
-#line 65 "scanner.l"
-{ update_col(); return ','; }
+#line 96 "scanner.l"
+{
+    update_pos();
+    yylval.number_val = atof(yytext);
+    return NUMBER;
+}
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 67 "scanner.l"
-{ 
-                 update_col(); 
-                 yylval.boolean_val = 1; 
-                 return BOOLEAN; 
-               }
+#line 102 "scanner.l"
+{ update_pos(); yylval.boolean_val = 1; return BOOLEAN; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 72 "scanner.l"
-{ 
-                 update_col(); 
-                 yylval.boolean_val = 0; 
-                 return BOOLEAN; 
-               }
+#line 103 "scanner.l"
+{ update_pos(); yylval.boolean_val = 0; return BOOLEAN; }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 77 "scanner.l"
-{ update_col(); return NUL; }
+#line 104 "scanner.l"
+{ update_pos(); return NUL; }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 79 "scanner.l"
-{ 
-                 update_col(); 
-                 yylval.number_val = atof(yytext); 
-                 return NUMBER; 
-               }
+#line 106 "scanner.l"
+{ update_pos(); /* Skip whitespace */ }
 	YY_BREAK
 case 13:
+/* rule 13 can match eol */
 YY_RULE_SETUP
-#line 85 "scanner.l"
-{ 
-                 update_col();
-                 string_buf_ptr = 0;
-                 BEGIN(STRING);
-               }
+#line 107 "scanner.l"
+{ update_pos(); /* Skip newlines, update_pos handles line_num */ }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 91 "scanner.l"
+#line 109 "scanner.l"
 { 
-                 BEGIN(INITIAL);
-                 string_buffer[string_buf_ptr] = '\0';
-                 yylval.string_val = strdup(string_buffer);
-                 if (!yylval.string_val) {
-                     fprintf(stderr, "Error: Memory allocation failed for string at line %d, column %d\n", 
-                             line_num, col_num);
-                     exit(EXIT_FAILURE);
-                 }
-                 update_col();
-                 return STRING;
-               }
+    update_pos();
+    fprintf(stderr, "Lexer Error: Unexpected character '%s' (ASCII: %d) at line %d, col %d\n", 
+            yytext, (int)yytext[0], line_num, col_num);
+    exit(EXIT_FAILURE); 
+}
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 104 "scanner.l"
-{ add_to_string('"'); update_col(); }
-	YY_BREAK
-case 16:
-YY_RULE_SETUP
-#line 105 "scanner.l"
-{ add_to_string('\\'); update_col(); }
-	YY_BREAK
-case 17:
-YY_RULE_SETUP
-#line 106 "scanner.l"
-{ add_to_string('/'); update_col(); }
-	YY_BREAK
-case 18:
-YY_RULE_SETUP
-#line 107 "scanner.l"
-{ add_to_string('\b'); update_col(); }
-	YY_BREAK
-case 19:
-YY_RULE_SETUP
-#line 108 "scanner.l"
-{ add_to_string('\f'); update_col(); }
-	YY_BREAK
-case 20:
-YY_RULE_SETUP
-#line 109 "scanner.l"
-{ add_to_string('\n'); update_col(); }
-	YY_BREAK
-case 21:
-YY_RULE_SETUP
-#line 110 "scanner.l"
-{ add_to_string('\r'); update_col(); }
-	YY_BREAK
-case 22:
-YY_RULE_SETUP
-#line 111 "scanner.l"
-{ add_to_string('\t'); update_col(); }
-	YY_BREAK
-case 23:
-YY_RULE_SETUP
-#line 112 "scanner.l"
-{
-                 /* Convert Unicode escape sequence */
-                 int code;
-                 sscanf(yytext + 2, "%x", &code);
-                 
-                 /* For simplicity, only handle basic ASCII and some common chars */
-                 if (code < 128) {
-                     add_to_string((char)code);
-                 } else {
-                     /* For non-ASCII, store simple replacement */
-                     add_to_string('?');
-                 }
-                 update_col();
-               }
-	YY_BREAK
-case 24:
-/* rule 24 can match eol */
-YY_RULE_SETUP
-#line 127 "scanner.l"
-{ 
-                   /* Copy normal string content */
-                   char* yptr = yytext;
-                   while (*yptr) {
-                       add_to_string(*yptr++);
-                   }
-                   update_col();
-                 }
-	YY_BREAK
-case 25:
-YY_RULE_SETUP
-#line 136 "scanner.l"
-{ 
-                 /* Invalid escape */
-                 fprintf(stderr, "Error: Invalid escape sequence at line %d, column %d\n", 
-                        line_num, col_num);
-                 exit(EXIT_FAILURE);
-               }
-	YY_BREAK
-case YY_STATE_EOF(STRING):
-#line 143 "scanner.l"
-{ 
-                  fprintf(stderr, "Error: Unterminated string at line %d, column %d\n", 
-                         line_num, col_num);
-                  exit(EXIT_FAILURE);
-                }
-	YY_BREAK
-case 26:
-YY_RULE_SETUP
-#line 150 "scanner.l"
-{ 
-                 /* Invalid token */
-                 fprintf(stderr, "Error: Invalid token at line %d, column %d: '%c'\n", 
-                        line_num, col_num, yytext[0]);
-                 exit(EXIT_FAILURE);
-               }
-	YY_BREAK
-case 27:
-YY_RULE_SETUP
-#line 157 "scanner.l"
+#line 116 "scanner.l"
 ECHO;
 	YY_BREAK
-#line 1015 "lex.yy.c"
+#line 955 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1308,7 +1248,7 @@ static int yy_get_next_buffer (void)
 		while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 			{
 			yy_current_state = (int) yy_def[yy_current_state];
-			if ( yy_current_state >= 57 )
+			if ( yy_current_state >= 42 )
 				yy_c = yy_meta[yy_c];
 			}
 		yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
@@ -1336,16 +1276,57 @@ static int yy_get_next_buffer (void)
 	while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 		{
 		yy_current_state = (int) yy_def[yy_current_state];
-		if ( yy_current_state >= 57 )
+		if ( yy_current_state >= 42 )
 			yy_c = yy_meta[yy_c];
 		}
 	yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
-	yy_is_jam = (yy_current_state == 56);
+	yy_is_jam = (yy_current_state == 41);
 
 		return yy_is_jam ? 0 : yy_current_state;
 }
 
 #ifndef YY_NO_UNPUT
+
+    static void yyunput (int c, char * yy_bp )
+{
+	char *yy_cp;
+    
+    yy_cp = (yy_c_buf_p);
+
+	/* undo effects of setting up yytext */
+	*yy_cp = (yy_hold_char);
+
+	if ( yy_cp < YY_CURRENT_BUFFER_LVALUE->yy_ch_buf + 2 )
+		{ /* need to shift things up to make room */
+		/* +2 for EOB chars. */
+		int number_to_move = (yy_n_chars) + 2;
+		char *dest = &YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[
+					YY_CURRENT_BUFFER_LVALUE->yy_buf_size + 2];
+		char *source =
+				&YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[number_to_move];
+
+		while ( source > YY_CURRENT_BUFFER_LVALUE->yy_ch_buf )
+			*--dest = *--source;
+
+		yy_cp += (int) (dest - source);
+		yy_bp += (int) (dest - source);
+		YY_CURRENT_BUFFER_LVALUE->yy_n_chars =
+			(yy_n_chars) = (int) YY_CURRENT_BUFFER_LVALUE->yy_buf_size;
+
+		if ( yy_cp < YY_CURRENT_BUFFER_LVALUE->yy_ch_buf + 2 )
+			YY_FATAL_ERROR( "flex scanner push-back overflow" );
+		}
+
+	*--yy_cp = (char) c;
+
+    if ( c == '\n' ){
+        --yylineno;
+    }
+
+	(yytext_ptr) = yy_bp;
+	(yy_hold_char) = *yy_cp;
+	(yy_c_buf_p) = yy_cp;
+}
 
 #endif
 
@@ -1418,6 +1399,11 @@ static int yy_get_next_buffer (void)
 	c = *(unsigned char *) (yy_c_buf_p);	/* cast for 8-bit char's */
 	*(yy_c_buf_p) = '\0';	/* preserve yytext */
 	(yy_hold_char) = *++(yy_c_buf_p);
+
+	if ( c == '\n' )
+		
+    yylineno++;
+;
 
 	return c;
 }
@@ -1885,6 +1871,9 @@ static int yy_init_globals (void)
      * This function is called from yylex_destroy(), so don't allocate here.
      */
 
+    /* We do not touch yylineno unless the option is enabled. */
+    yylineno =  1;
+    
     (yy_buffer_stack) = NULL;
     (yy_buffer_stack_top) = 0;
     (yy_buffer_stack_max) = 0;
@@ -1979,6 +1968,16 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 157 "scanner.l"
+#line 116 "scanner.l"
+
+
+// Function to be called by yyparse if it needs to initiate parsing.
+// int main(int argc, char** argv) { // Example main for lexer testing
+//     if (argc > 1) yyin = fopen(argv[1], "r");
+//     yylex();
+//     return 0;
+// }
+
+// No need for yywrap function if %option noyywrap is used.
 
 

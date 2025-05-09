@@ -54,7 +54,8 @@
          // Error handling is done in yyerror, just exit
          return EXIT_FAILURE;
      }
-     
+
+         
      // Check if we have a valid AST
      if (!ast_root) {
          fprintf(stderr, "Error: No AST generated\n");
@@ -79,8 +80,8 @@
      write_csv_files(schema, args.out_dir);
      
      // Cleanup
-     free_schema(schema);
-     free_ast(ast_root);
+     if (schema) free_schema(schema);
+     if (ast_root) free_ast(ast_root);
      
      return EXIT_SUCCESS;
  }

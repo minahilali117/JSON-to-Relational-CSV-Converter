@@ -13,17 +13,18 @@
 
  #line 8 "/usr/share/bison++/bison.h"
 
-#line 30 "parser.y"
+#line 32 "parser.y"
 typedef union {
-    char* string_val;
-    double number_val;
-    int boolean_val;
+    char* string_val;       // From STRING token
+    double number_val;      // From NUMBER token
+    int boolean_val;        // From BOOLEAN token (0 or 1)
+    // AST specific structures
     struct AST_Node* ast_node;
     struct Object_Node* object_node;
     struct Array_Node* array_node;
     struct Pair_Node* pair_node;
-    struct Value_Node value_node;
-    struct Value_Node* value_node_list;
+    struct Value_Node* value_node_ptr; // For individual Value_Node* returned by 'value' and 'array_value' rules
+    struct ValueHolder* value_holder_list; // For the list of values in an array
 } yy_parse_stype;
 #define YY_parse_STYPE yy_parse_stype
 #ifndef YY_USE_CLASS

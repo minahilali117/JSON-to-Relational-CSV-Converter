@@ -100,19 +100,15 @@ Maintained by Magnus Ekdahl <magnus@debian.org>
  #line 88 "/usr/share/bison++/bison.cc"
 #line 1 "parser.y"
 
-/**
- * parser.y - JSON parser for json2relcsv using Yacc/Bison
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "ast.h"
+#include "ast.h" // Assuming ast.h defines all AST node types and ValueType enum
 
 // Lexer functions and variables
 extern int yylex();
-extern int line_num;
-extern int col_num;
+extern int line_num; // Ensure these are correctly defined and updated in scanner.l
+extern int col_num;  // Ensure these are correctly defined and updated in scanner.l
 extern FILE* yyin;
 
 // Error handling function
@@ -121,22 +117,29 @@ void yyerror(const char* s);
 // Root of the AST
 AST_Node* ast_root = NULL;
 
-// Helper functions for building the AST
-Pair_Node* create_pair_list(Pair_Node* first, Pair_Node* rest);
-Value_Node* create_value_list(Value_Node first, Value_Node* rest, int* count);
+// Helper structure for building a list of values in the parser
+typedef struct ValueHolder {
+    Value_Node value_item;      // The actual Value_Node (copied)
+    struct ValueHolder* next;
+} ValueHolder;
+
+// Helper functions (can be defined below yyparse or in a separate .c file)
+// Pair_Node* create_pair_list(Pair_Node* first, Pair_Node* rest); // Original, not used by current grammar for pairs
+// Value_Node* create_value_list(Value_Node* first, Value_Node* rest, int* count); // Original, will be replaced by ValueHolder logic
 
 
-#line 30 "parser.y"
+#line 32 "parser.y"
 typedef union {
-    char* string_val;
-    double number_val;
-    int boolean_val;
+    char* string_val;       // From STRING token
+    double number_val;      // From NUMBER token
+    int boolean_val;        // From BOOLEAN token (0 or 1)
+    // AST specific structures
     struct AST_Node* ast_node;
     struct Object_Node* object_node;
     struct Array_Node* array_node;
     struct Pair_Node* pair_node;
-    struct Value_Node value_node;
-    struct Value_Node* value_node_list;
+    struct Value_Node* value_node_ptr; // For individual Value_Node* returned by 'value' and 'array_value' rules
+    struct ValueHolder* value_holder_list; // For the list of values in an array
 } yy_parse_stype;
 #define YY_parse_STYPE yy_parse_stype
 #ifndef YY_USE_CLASS
@@ -509,7 +512,7 @@ static const short yyprhs[] = {     0,
 static const short yyrhs[] = {    20,
      0,     7,     8,     0,     7,    15,     8,     0,    16,     0,
     16,     9,    15,     0,     3,    10,    20,     0,    11,    12,
-     0,    11,    18,    12,     0,    19,     0,    19,     9,    18,
+     0,    11,    18,    12,     0,    19,     0,    18,     9,    19,
      0,    20,     0,    14,     0,    17,     0,     3,     0,     4,
      0,     5,     0,     6,     0
 };
@@ -518,8 +521,8 @@ static const short yyrhs[] = {    20,
 
 #if (YY_parse_DEBUG != 0) || defined(YY_parse_ERROR_VERBOSE) 
 static const short yyrline[] = { 0,
-    63,    97,   100,   115,   118,   125,   131,   134,   159,   169,
-   182,   188,   191,   194,   197,   200,   203
+    67,   121,   124,   140,   144,   151,   163,   166,   233,   241,
+   259,   265,   271,   277,   283,   289,   295
 };
 
 static const char * const yytname[] = {   "$","error","$illegal.","STRING","NUMBER",
@@ -541,7 +544,7 @@ static const short yyr2[] = {     0,
 static const short yydefact[] = {     0,
     14,    15,    16,    17,     0,     0,    12,    13,     1,     0,
      2,     0,     4,     7,     0,     9,    11,     0,     3,     0,
-     8,     0,     6,     5,    10,     0,     0,     0
+     0,     8,     6,     5,    10,     0,     0,     0
 };
 
 static const short yydefgoto[] = {    26,
@@ -550,12 +553,12 @@ static const short yydefgoto[] = {    26,
 
 static const short yypact[] = {     8,
 -32768,-32768,-32768,-32768,    13,    -2,-32768,-32768,-32768,    -4,
--32768,    -1,    11,-32768,     5,    14,-32768,     8,-32768,    19,
--32768,     8,-32768,-32768,-32768,    24,    25,-32768
+-32768,    -1,    15,-32768,    11,-32768,-32768,     8,-32768,     5,
+     8,-32768,-32768,-32768,-32768,    17,    22,-32768
 };
 
 static const short yypgoto[] = {-32768,
--32768,   -12,-32768,-32768,     4,-32768,     0
+-32768,     6,-32768,-32768,-32768,     4,     0
 };
 
 
@@ -563,15 +566,15 @@ static const short yypgoto[] = {-32768,
 
 
 static const short yytable[] = {     9,
-     1,     2,     3,     4,     5,    18,    19,    24,     6,    14,
-     1,     2,     3,     4,     5,    10,    21,    23,     6,    20,
-    11,    10,    22,    27,    28,    25
+     1,     2,     3,     4,     5,    18,    19,    10,     6,    14,
+     1,     2,     3,     4,     5,    10,    27,    23,     6,    21,
+    11,    28,    22,    20,    25,    24
 };
 
 static const short yycheck[] = {     0,
-     3,     4,     5,     6,     7,    10,     8,    20,    11,    12,
-     3,     4,     5,     6,     7,     3,    12,    18,    11,     9,
-     8,     3,     9,     0,     0,    22
+     3,     4,     5,     6,     7,    10,     8,     3,    11,    12,
+     3,     4,     5,     6,     7,     3,     0,    18,    11,     9,
+     8,     0,    12,     9,    21,    20
 };
 
 #line 352 "/usr/share/bison++/bison.cc"
@@ -1068,176 +1071,267 @@ YYLABEL(yyreduce)
   switch (yyn) {
 
 case 1:
-#line 63 "parser.y"
-{
-        ast_root = create_ast_node(NODE_OBJECT);
-        
-        switch (yyvsp[0].value_node.type) {
-            case VALUE_OBJECT:
-                ast_root->type = NODE_OBJECT;
-                ast_root->object = yyvsp[0].value_node.object_val;
-                break;
-            case VALUE_ARRAY:
-                ast_root->type = NODE_ARRAY;
-                ast_root->object = (Object_Node*)yyvsp[0].value_node.array_val;
-                break;
-            case VALUE_STRING:
-                ast_root->type = NODE_STRING;
-                ast_root->string_val = yyvsp[0].value_node.string_val;
-                break;
-            case VALUE_NUMBER:
-                ast_root->type = NODE_NUMBER;
-                ast_root->number_val = yyvsp[0].value_node.number_val;
-                break;
-            case VALUE_BOOLEAN:
-                ast_root->type = NODE_BOOLEAN;
-                ast_root->boolean_val = yyvsp[0].value_node.boolean_val;
-                break;
-            case VALUE_NULL:
-                ast_root->type = NODE_NULL;
-                break;
+#line 67 "parser.y"
+{ // $1 is a Value_Node* (heap-allocated by the 'value' rule)
+        ast_root = create_ast_node(NODE_NULL); // Create a shell, type will be set
+        if (yyvsp[0].value_node_ptr != NULL) {
+            // Transfer ownership of contents from the Value_Node pointed to by $1
+            // to ast_root. The ast_root itself is an AST_Node.
+            switch (yyvsp[0].value_node_ptr->type) {
+                case VALUE_OBJECT:
+                    ast_root->type = NODE_OBJECT;
+                    ast_root->object = yyvsp[0].value_node_ptr->object_val; // Transfer ownership of Object_Node*
+                    yyvsp[0].value_node_ptr->object_val = NULL; // Avoid double free if $1 is complexly freed later
+                    break;
+                case VALUE_ARRAY:
+                    ast_root->type = NODE_ARRAY;
+                    ast_root->array = yyvsp[0].value_node_ptr->array_val;   // Transfer ownership of Array_Node*
+                    yyvsp[0].value_node_ptr->array_val = NULL;
+                    break;
+                case VALUE_STRING:
+                    ast_root->type = NODE_STRING;
+                    ast_root->string_val = yyvsp[0].value_node_ptr->string_val; // Transfer ownership of char*
+                    yyvsp[0].value_node_ptr->string_val = NULL;
+                    break;
+                case VALUE_NUMBER:
+                    ast_root->type = NODE_NUMBER;
+                    ast_root->number_val = yyvsp[0].value_node_ptr->number_val;
+                    break;
+                case VALUE_BOOLEAN:
+                    ast_root->type = NODE_BOOLEAN;
+                    ast_root->boolean_val = yyvsp[0].value_node_ptr->boolean_val;
+                    break;
+                case VALUE_NULL:
+                    ast_root->type = NODE_NULL;
+                    break;
+                default:
+                    yyerror("Unknown value type in json rule");
+                    // Potentially free $1 and ast_root before aborting
+                    free(yyvsp[0].value_node_ptr);
+                    free(ast_root); // or free_ast(ast_root) if partially populated
+                    ast_root = NULL;
+                    YYABORT;
+            }
+            free(yyvsp[0].value_node_ptr); // Free the Value_Node struct itself, its contents are now owned by ast_root
+        } else {
+            // This case should ideally not be reached if 'value' always returns a valid pointer or YYABORTs.
+            // If it can be NULL, ast_root remains NODE_NULL or an empty default.
+            // free(ast_root); // If $1 is NULL, ast_root might be an empty shell.
+            // ast_root = create_ast_node(NODE_NULL); // Or ensure it's a valid empty AST
+            yyerror("Internal error: value rule returned NULL to json rule");
+            free(ast_root); ast_root = NULL; YYABORT;
         }
-        
         yyval.ast_node = ast_root;
     ;
     break;}
 case 2:
-#line 97 "parser.y"
+#line 121 "parser.y"
 {
         yyval.object_node = create_object_node();
     ;
     break;}
 case 3:
-#line 100 "parser.y"
-{
+#line 124 "parser.y"
+{ // $2 is Pair_Node* (list of pairs)
         yyval.object_node = create_object_node();
-        
-        /* Add all pairs to the object */
-        Pair_Node* current = yyvsp[-1].pair_node;
-        while (current) {
-            Pair_Node* next = current->next;
-            current->next = NULL;
-            add_pair_to_object(yyval.object_node, current);
-            current = next;
+        // Add pairs to the object. The 'pairs' rule returns a linked list.
+        Pair_Node* current_pair_item = yyvsp[-1].pair_node;
+        while (current_pair_item) {
+            Pair_Node* next_pair_item = current_pair_item->next;
+            current_pair_item->next = NULL; // Detach from list before adding
+            add_pair_to_object(yyval.object_node, current_pair_item);
+            current_pair_item = next_pair_item;
         }
+        // The Pair_Node items themselves are now owned by the Object_Node.
+        // The list structure of $2 is consumed.
     ;
     break;}
 case 4:
-#line 115 "parser.y"
-{
+#line 140 "parser.y"
+{ // $1 is Pair_Node*
         yyval.pair_node = yyvsp[0].pair_node;
+        yyval.pair_node->next = NULL; // Ensure it's a single-item list initially
     ;
     break;}
 case 5:
-#line 118 "parser.y"
-{
-        yyvsp[-2].pair_node->next = yyvsp[0].pair_node;
+#line 144 "parser.y"
+{ // $1 is Pair_Node*, $3 is Pair_Node* (rest of the list)
+        yyvsp[-2].pair_node->next = yyvsp[0].pair_node; // Prepend $1 to the list $3
         yyval.pair_node = yyvsp[-2].pair_node;
     ;
     break;}
 case 6:
-#line 125 "parser.y"
-{
-        yyval.pair_node = create_pair_node(yyvsp[-2].string_val, yyvsp[0].value_node);
+#line 151 "parser.y"
+{ // $1 is char* (key), $3 is Value_Node* (value wrapper)
+        // create_pair_node takes (char* key, Value_Node value_struct).
+        // It does NOT take Value_Node*. So we dereference $3.
+        // The key ($1) is from yylval.string_val, processed by scanner's process_string (heap).
+        // The Value_Node from $3 contains the actual data (e.g., Object_Node*, char*).
+        yyval.pair_node = create_pair_node(yyvsp[-2].string_val, *yyvsp[0].value_node_ptr); // $1 (key) is now owned by Pair_Node.
+                                        // Contents of *$3 are copied or pointers transferred by create_string/object/array_value logic.
+        free(yyvsp[0].value_node_ptr); // Free the Value_Node struct wrapper pointed to by $3. Its contents are now part of the Pair_Node.
     ;
     break;}
 case 7:
-#line 131 "parser.y"
+#line 163 "parser.y"
 {
         yyval.array_node = create_array_node(0);
     ;
     break;}
 case 8:
-#line 134 "parser.y"
-{
-        /* Count number of values */
+#line 166 "parser.y"
+{ // $2 is ValueHolder* (linked list of ValueHolder)
         int count = 0;
-        Value_Node* current = yyvsp[-1].value_node_list;
-        while (current) {
+        ValueHolder* current_vh = yyvsp[-1].value_holder_list;
+        while (current_vh) {
             count++;
-            current = (Value_Node*)current->string_val; /* Reusing string_val as next pointer */
+            current_vh = current_vh->next;
         }
-        
-        /* Create array node */
-        yyval.array_node = create_array_node(count);
-        
-        /* Add values to array */
-        current = yyvsp[-1].value_node_list;
+
+        yyval.array_node = create_array_node(count); // $$ is Array_Node*
+        current_vh = yyvsp[-1].value_holder_list; // Reset to head of list
+
+        // The list built by 'values' rule is in reverse parse order.
+        // Example: [a, b, c] -> values rule: c -> b -> a (holder(a) is head)
+        // So, to fill array elements in correct order [a,b,c], iterate list and fill from 0 to count-1
+        // OR, fill from count-1 down to 0.
+        // Let's assume 'values' rule: value ',' values results in $1 (new head) -> $3 (tail)
+        // So, [a,b,c] -> holder(a) -> holder(b) -> holder(c). Iterate normally.
+
         for (int i = 0; i < count; i++) {
-            Value_Node* next = (Value_Node*)current->string_val;
-            current->string_val = NULL; /* Clear the next pointer */
-            add_element_to_array(yyval.array_node, i, *current);
-            free(current); /* Free the temporary node */
-            current = next;
+            if (!current_vh) { // Should not happen if count is correct
+                yyerror("Internal error: Mismatch in array value count");
+                // Free $$ (Array_Node) and any already added elements if possible
+                // For simplicity, YYABORT. Proper cleanup is complex here.
+                // free_ast( (AST_Node*) $$ ); // This is wrong, $$ is Array_Node*
+                // Need to free Array_Node $$ and its elements if partially filled.
+                // For now, rely on higher level free_ast(ast_root) on error exit.
+                YYABORT;
+            }
+            // add_element_to_array takes (Array_Node*, int index, Value_Node value_struct)
+            // current_vh->value_item is a Value_Node struct.
+            add_element_to_array(yyval.array_node, i, current_vh->value_item); 
+            // The contents of current_vh->value_item (like char* for string, Object_Node*)
+            // are now "owned" by the Array_Node due to the copy/transfer in add_element_to_array.
+            // Or rather, add_element_to_array copies the Value_Node struct. If that struct contains
+            // pointers (string_val, object_val, array_val), those pointers are copied.
+            // The actual data pointed to (the string, the object, the array) must have its ownership
+            // correctly managed. The Value_Node itself (current_vh->value_item) is on the ValueHolder's stack/struct.
+
+            ValueHolder* temp_vh = current_vh;
+            current_vh = current_vh->next;
+            // We must NOT free contents of temp_vh->value_item here if they were transferred to Array_Node.
+            // The Value_Node structs created by 'value' rule are copied into ValueHolder.
+            // The original Value_Node* from 'value' rule was freed when creating the ValueHolder.
+            // So, temp_vh->value_item's contents (pointers to string/object/array data) are the ones
+            // that are now also pointed to by the Array_Node.
+            // This is fine as long as add_element_to_array correctly handles the Value_Node struct copy.
+            // The ast.c create_xxx_value functions ensure the Value_Node struct is properly formed.
+            free(temp_vh); // Free the ValueHolder list node itself.
+        }
+        if (current_vh != NULL) { // Should be NULL if all processed
+             yyerror("Internal error: Array values list not fully processed.");
+             // Free remaining ValueHolder items to prevent leaks
+             while(current_vh) {
+                 ValueHolder* temp_vh = current_vh;
+                 current_vh = current_vh->next;
+                 // Important: If value_item contains heap data (string, object, array)
+                 // that was NOT successfully transferred to the final AST (e.g. due to error),
+                 // it needs to be freed here. However, with current logic, they *are* transferred.
+                 // So, only free the holder.
+                 // free_value_node_contents(&temp_vh->value_item); // ONLY if data not transferred
+                 free(temp_vh);
+             }
         }
     ;
     break;}
 case 9:
-#line 159 "parser.y"
-{
-        Value_Node* node = malloc(sizeof(Value_Node));
-        if (!node) {
-            yyerror("Memory allocation failed");
-            exit(EXIT_FAILURE);
-        }
-        *node = yyvsp[0].value_node;
-        node->string_val = NULL; /* Will use string_val as next pointer */
-        yyval.value_node_list = node;
+#line 233 "parser.y"
+{ // $1 is Value_Node* (heap-allocated wrapper)
+        ValueHolder* vh = (ValueHolder*)malloc(sizeof(ValueHolder));
+        if (!vh) { yyerror("malloc failed for ValueHolder"); YYABORT; }
+        vh->value_item = *yyvsp[0].value_node_ptr; // Copy the Value_Node struct
+        vh->next = NULL;
+        yyval.value_holder_list = vh;
+        free(yyvsp[0].value_node_ptr); // Free the Value_Node* wrapper, its contents are now in vh->value_item
     ;
     break;}
 case 10:
-#line 169 "parser.y"
-{
-        Value_Node* node = malloc(sizeof(Value_Node));
-        if (!node) {
-            yyerror("Memory allocation failed");
-            exit(EXIT_FAILURE);
+#line 241 "parser.y"
+{ // $1 is ValueHolder* (list so far), $3 is Value_Node* (new item wrapper)
+        ValueHolder* new_vh = (ValueHolder*)malloc(sizeof(ValueHolder));
+        if (!new_vh) { yyerror("malloc failed for new ValueHolder"); YYABORT; }
+        new_vh->value_item = *yyvsp[0].value_node_ptr; // Copy the Value_Node struct
+        new_vh->next = NULL;
+
+        // Append new_vh to the end of the list $1
+        ValueHolder* current_vh = yyvsp[-2].value_holder_list;
+        while(current_vh->next != NULL) {
+            current_vh = current_vh->next;
         }
-        *node = yyvsp[-2].value_node;
-        node->string_val = (char*)yyvsp[0].value_node_list; /* Use string_val as next pointer */
-        yyval.value_node_list = node;
+        current_vh->next = new_vh;
+        yyval.value_holder_list = yyvsp[-2].value_holder_list; // Return the original head of the list
+        free(yyvsp[0].value_node_ptr); // Free the Value_Node* wrapper
     ;
     break;}
 case 11:
-#line 182 "parser.y"
-{
-        yyval.value_node = yyvsp[0].value_node;
+#line 259 "parser.y"
+{ // $1 is Value_Node*
+        yyval.value_node_ptr = yyvsp[0].value_node_ptr; // Pass through the Value_Node*
     ;
     break;}
 case 12:
-#line 188 "parser.y"
-{
-        yyval.value_node = create_object_value(yyvsp[0].object_node);
+#line 265 "parser.y"
+{ // $1 is Object_Node*
+        Value_Node* vn = (Value_Node*)malloc(sizeof(Value_Node));
+        if (!vn) { yyerror("malloc failed for Value_Node (object)"); YYABORT; }
+        *vn = create_object_value(yyvsp[0].object_node); // create_object_value returns a Value_Node struct
+        yyval.value_node_ptr = vn;
     ;
     break;}
 case 13:
-#line 191 "parser.y"
-{
-        yyval.value_node = create_array_value(yyvsp[0].array_node);
+#line 271 "parser.y"
+{ // $1 is Array_Node*
+        Value_Node* vn = (Value_Node*)malloc(sizeof(Value_Node));
+        if (!vn) { yyerror("malloc failed for Value_Node (array)"); YYABORT; }
+        *vn = create_array_value(yyvsp[0].array_node);
+        yyval.value_node_ptr = vn;
     ;
     break;}
 case 14:
-#line 194 "parser.y"
-{
-        yyval.value_node = create_string_value(yyvsp[0].string_val);
+#line 277 "parser.y"
+{ // $1 is char* (heap-allocated by scanner's process_string)
+        Value_Node* vn = (Value_Node*)malloc(sizeof(Value_Node));
+        if (!vn) { yyerror("malloc failed for Value_Node (string)"); free(yyvsp[0].string_val); YYABORT; }
+        *vn = create_string_value(yyvsp[0].string_val); // $1 (char*) is now owned by this Value_Node's contents
+        yyval.value_node_ptr = vn;
     ;
     break;}
 case 15:
-#line 197 "parser.y"
-{
-        yyval.value_node = create_number_value(yyvsp[0].number_val);
+#line 283 "parser.y"
+{ // $1 is double
+        Value_Node* vn = (Value_Node*)malloc(sizeof(Value_Node));
+        if (!vn) { yyerror("malloc failed for Value_Node (number)"); YYABORT; }
+        *vn = create_number_value(yyvsp[0].number_val);
+        yyval.value_node_ptr = vn;
     ;
     break;}
 case 16:
-#line 200 "parser.y"
-{
-        yyval.value_node = create_boolean_value(yyvsp[0].boolean_val);
+#line 289 "parser.y"
+{ // $1 is int (0 or 1)
+        Value_Node* vn = (Value_Node*)malloc(sizeof(Value_Node));
+        if (!vn) { yyerror("malloc failed for Value_Node (boolean)"); YYABORT; }
+        *vn = create_boolean_value(yyvsp[0].boolean_val); // $1 is a simple int, copied
+        yyval.value_node_ptr = vn;
     ;
     break;}
 case 17:
-#line 203 "parser.y"
+#line 295 "parser.y"
 {
-        yyval.value_node = create_null_value();
+        Value_Node* vn = (Value_Node*)malloc(sizeof(Value_Node));
+        if (!vn) { yyerror("malloc failed for Value_Node (null)"); YYABORT; }
+        *vn = create_null_value();
+        yyval.value_node_ptr = vn;
     ;
     break;}
 }
@@ -1444,10 +1538,16 @@ YYLABEL(yyerrhandle)
 /* END */
 
  #line 1038 "/usr/share/bison++/bison.cc"
-#line 208 "parser.y"
+#line 303 "parser.y"
 
 
 void yyerror(const char* s) {
-    fprintf(stderr, "Error: %s at line %d, column %d\n", s, line_num, col_num);
-    exit(EXIT_FAILURE);
+    // Make sure line_num and col_num are accurately updated by the lexer for all tokens
+    fprintf(stderr, "Parser Error: %s at line %d, column %d\n", s, line_num, col_num);
+    // Consider a more graceful exit or error recovery if this is part of a larger system.
+    // For a standalone tool, exit is common.
+    // exit(EXIT_FAILURE); // YYABORT might be preferred within parser actions
 }
+
+// If create_pair_list and create_value_list were used, their definitions would go here.
+// Since they are not used by the revised grammar, they can be removed.

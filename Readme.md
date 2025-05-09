@@ -21,9 +21,6 @@ Required tools:
 - C compiler (GCC recommended)
 - Flex (for lexical analysis)
 - Bison (for parsing)
-```bash
-sudo apt-get install flex bison build-essential
-```
 - Make
 
 To build the project:
@@ -43,6 +40,13 @@ This will create the `json2relcsv` executable.
 Options:
 - `--print-ast`: Print the AST to stdout
 - `--out-dir DIR`: Write CSV files to directory DIR (default: current directory)
+
+## Run tests
+
+```bash
+chmod +x run_tests.sh
+./run_tests.sh
+```
 
 ## Conversion Rules
 

@@ -148,13 +148,13 @@
          }
          
          // Get key name from table name
-         char* key_name = strrchr(table->name, '_');
+         char* key_name = strdup(strrchr(table->name, '_') ? strrchr(table->name, '_') + 1 : table->name);
          if (key_name) {
              key_name++; // Skip the underscore
          } else {
              key_name = table->name; // Fallback
          }
-         
+         free(key_name);
          // Write array elements
          // Note: We're not iterating through objects here as junction tables 
          // don't store objects directly. Instead, we handle this when writing 
