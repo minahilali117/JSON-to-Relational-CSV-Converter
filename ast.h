@@ -17,6 +17,29 @@
  struct Pair_Node;
  struct Value_Node;
  
+// Value types
+typedef enum {
+    VALUE_STRING,
+    VALUE_NUMBER,
+    VALUE_BOOLEAN,
+    VALUE_NULL,
+    VALUE_OBJECT,
+    VALUE_ARRAY
+} ValueType;
+
+// JSON value structure
+typedef struct Value_Node {
+    ValueType type;
+    union {
+        char* string_val;
+        double number_val;
+        bool boolean_val;
+        struct Object_Node* object_val;
+        struct Array_Node* array_val;
+    };
+} Value_Node;
+
+
  // AST node types
  typedef enum {
      NODE_OBJECT,
@@ -26,28 +49,6 @@
      NODE_BOOLEAN,
      NODE_NULL
  } NodeType;
- 
- // Value types
- typedef enum {
-     VALUE_STRING,
-     VALUE_NUMBER,
-     VALUE_BOOLEAN,
-     VALUE_NULL,
-     VALUE_OBJECT,
-     VALUE_ARRAY
- } ValueType;
- 
- // JSON value structure
- typedef struct Value_Node {
-     ValueType type;
-     union {
-         char* string_val;
-         double number_val;
-         bool boolean_val;
-         struct Object_Node* object_val;
-         struct Array_Node* array_val;
-     };
- } Value_Node;
  
  // Key-value pair structure
  typedef struct Pair_Node {
