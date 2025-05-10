@@ -5,6 +5,11 @@
 parser.tab.c
 parser.tab.h
 lex.yy.c
+parser.h
+json2relcsv.exe
+json2relcsv
+*.csv
+
 
 # Build files
 *.out
