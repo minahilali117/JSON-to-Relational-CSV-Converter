@@ -1,0 +1,26 @@
+{
+  "store": {
+    "name": "Super Bookstore",
+    "location": {"city": "New York", "state": "NY"},
+    "established": 1998,
+    "categories": ["Fiction", "Science", "History"],
+    "books": [
+      {
+        "title": "The Great Adventure",
+        "author": {"name": "J. Smith", "birthYear": 1980},
+        "price": 19.99,
+        "tags": ["adventure", "bestseller"]
+      },
+      {
+        "title": "Science Explained",
+        "author": {"name": "A. Einstein", "birthYear": 1965},
+        "price": 29.99,
+        "tags": ["education", "science"]
+      }
+    ],
+    "employees": [
+      {"id": "E001", "name": "John", "position": "Manager"},
+      {"id": "E002", "name": "Mary", "position": "Clerk"}
+    ]
+  }
+}
